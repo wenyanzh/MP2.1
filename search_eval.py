@@ -5,7 +5,6 @@ import time
 import metapy
 import pytoml
 
-
 class InL2Ranker(metapy.index.RankingFunction):
     """
     Create a new ranking function in Python that can be used in MeTA.
@@ -21,14 +20,10 @@ class InL2Ranker(metapy.index.RankingFunction):
         For fields available in the score_data sd object,
         @see https://meta-toolkit.org/doxygen/structmeta_1_1index_1_1score__data.html
         """
-        tfn = self.param * sd.doc_term_count * math.log2(1 + (sd.avg_dl / abs(sd.doc_size)))
-        score = self.param * sd.query_term_weight * (tfn/(tfn+self.param)) * math.log2((sd.num_docs+1)/(self.param * sd.corpus_term_count+0.5))
+        tfn = float(self.param) * float(sd.doc_term_count) * float(math.log2(1 + (float(sd.avg_dl) / float(abs(sd.doc_size)))))
+        score = float(self.param) * float(sd.query_term_weight) * (tfn/(tfn+float(self.param))) * math.log2((float(sd.num_docs)+1)/(float(self.param) * float(sd.corpus_term_count) + 0.5))
         #score = (self.param + sd.doc_term_count) / (self.param * sd.doc_unique_terms + sd.doc_size)
         return score
-
-        #tfn = (self.param * sd.doc_term_count) * math.log((1 + (sd.avg_dl / abs(sd.doc_size))), 2)
-        #score = (self.param * sd.query_term_weight) * (tfn / (tfn + self.param)) * math.log(((sd.num_docs + 1) / ((self.param * sd.corpus_term_count) + 0.5)), 2)
-
 
 def load_ranker(cfg_file):
     """
@@ -79,3 +74,4 @@ if __name__ == '__main__':
     print("Elapsed: {} seconds".format(round(time.time() - start_time, 4)))
 
     f.close()
+
