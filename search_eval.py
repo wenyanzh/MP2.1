@@ -20,7 +20,10 @@ class InL2Ranker(metapy.index.RankingFunction):
         For fields available in the score_data sd object,
         @see https://meta-toolkit.org/doxygen/structmeta_1_1index_1_1score__data.html
         """
-        return (self.param + sd.doc_term_count) / (self.param * sd.doc_unique_terms + sd.doc_size)
+        tfn = self.param * sd.doc_count * math.log2(1 + (sd.avg_dl / sd.doc_size))
+        score = self.param * sd.query_term_weight * (tfn/(tfn+self.param)) * math.log2((sd.num_docs+1)/(self.param * sd.corpus_term_count+0.5))
+        #score = (self.param + sd.doc_term_count) / (self.param * sd.doc_unique_terms + sd.doc_size)
+        return score
 
 
 def load_ranker(cfg_file):
@@ -29,12 +32,15 @@ def load_ranker(cfg_file):
     The parameter to this function, cfg_file, is the path to a
     configuration file used to load the index. You can ignore this for MP2.
     """
-    return metapy.index.JelinekMercer()
+    #return metapy.index.JelinekMercer()
+    return InL2Ranker(some_param=0.5)
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
         print("Usage: {} config.toml".format(sys.argv[0]))
-        sys.exit(1)
+        sys.exit(100)
+
+    f= open("inl2.avg_p.txt","w+")
 
     cfg = sys.argv[1]
     print('Building or loading index...')
@@ -62,6 +68,10 @@ if __name__ == '__main__':
             query.content(line.strip())
             results = ranker.score(idx, query, top_k)
             avg_p = ev.avg_p(results, query_start + query_num, top_k)
-            print("Query {} average precision: {}".format(query_num + 1, avg_p))
+            #print("Query {} average precision: {}".format(query_num + 1, avg_p))
+            #f.write("Query {} average precision: {}".format(query_num + 1, avg_p)+"\n")
+            f.write("{}".format(avg_p)+"\n")
     print("Mean average precision: {}".format(ev.map()))
     print("Elapsed: {} seconds".format(round(time.time() - start_time, 4)))
+
+    f.close()
